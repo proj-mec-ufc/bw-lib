@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="demo.css">
+    <script defer src="courseEditado.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js" integrity="sha512-I+rKw3hArzZIHzrkdELbKqrXfkSvw/h0lW/GgB8FThaBVz2e5ZUlSW8kY8v3q6wq37eybIwyufkEZxe4qSlGcg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.js" integrity="sha512-WXWhnFUmZx+snPw8v2JjWQ0cdLUCLxTXhyqiZb7G5pkZZEGPBgVSzILSpkPK9haxW75sX5znfF08rsVnf6BUlw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/Draggable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/EaselPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/MotionPathPlugin.min.js"></script>
+
+    <script defer src="demo.js"></script>
+</head>
+
+<body>
+
+    <h1>Tarefa</h1>
+
+    <p>A sonda Voyager 2 foi lançada em 20 de agosto de 1977. Após percorrer uma grande distância, a sonda chegou ao
+        planeta <x-target class="step-target pill" to="#jupiter" tabindex="0"><strong>Júpiter</strong></x-target> em 09
+        de julho de 1979. Após passar por esse planeta, a sonda chegou ao espaço interestelar, ou
+        seja, deixou o Sistema Solar, no ano de 2020.</p>
+
+    <div id='myDiv'>
+        <svg id="entre"></svg>
+        
+
+        <p>Jupiter fica à <x-blank solution="0.3"></x-blank> da distancia para fora do sistema solar.</p>
+
+        <button v-on:click="pisca"> pisca</button>
+        <button v-on:click="terra"> terra</button>
+        <button v-on:click="jupiter"> jupiter</button>
+        <button v-on:click="fora"> fora</button>
+        <input type="text" v-model="deslocamento">
+
+        <!-- <svg width="320px" height="150px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+            <path id="path1" d="M10 80 Q 150 0 300 80" stroke="gray" stroke-dasharray="5,5" fill="transparent"/>
+            <path id="path2" d="M10 80 Q 150 0 300 80" stroke-width="7" stroke="#7CFC00" fill="transparent" stroke-linecap="round"/>
+            <circle class="knob" r="25" fill="#88CE02" stroke-width="4" stroke="#111"/>
+            </svg> -->
+    </div>
+
+</body>
+
+</html>
