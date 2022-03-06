@@ -468,13 +468,37 @@ input::placeholder {
             this.complete = false;
             this.components = []
 
-            //this.style.visibility = "hidden";
-            var back = this.innerHTML;
-            this.innerHTML = "";
+            // write element functionality in here
+            // Create a shadow root
+            this.shadow = this.attachShadow({
+                mode: 'open'
+            }); // sets and returns 'this.shadowRoot'
+
             this.base = document.createElement('div');
             this.base.classList.add("stepBase");
-            this.appendChild(this.base);
-            this.base.innerHTML = back;
+            this.shadow.appendChild(this.base);
+            this.base.innerHTML = this.innerHTML;
+            //this.shadow.innerHTML = this.innerHTML;
+            this.innerHTML = "";
+
+            // Create some CSS to apply to the shadow dom
+            const style = document.createElement('style');
+            style.textContent = `
+            .stepBase {
+                opacity: 0;
+                transition: opacity 2s;
+            }
+            .show {
+                opacity: 1;
+            }
+            `;
+
+            this.shadow.appendChild(style);
+
+            //this.style.visibility = "hidden";
+            /* var back = this.innerHTML;
+            this.innerHTML = ""; */
+            
             //this.base.style.opacity = "0.2";
             //this.style.opacity = "0";
 
@@ -484,9 +508,9 @@ input::placeholder {
                  this.components.push(e.target);
              }); */
 
-            this.addEventListener("solve", (e) => {
+            this.shadow.addEventListener("solve", (e) => {
                 e.stopPropagation();
-                let remaining = this.querySelectorAll("[solved='false']");
+                let remaining = this.shadow.querySelectorAll("[solved='false']");
                 if (remaining.length == 0) {
                     this.complete = true;
                     nextStep();
