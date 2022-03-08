@@ -22,7 +22,7 @@ function iterativeSVG(file, element, callback) {
       })
     }
   }
-
+if(SVG){
 (function () {
     var wiStyle = `
 :host{
@@ -491,23 +491,28 @@ input::placeholder {
 
             this.visible = false;
             this.complete = false;
-            this.components = []
+            //this.components = []
 
-            // write element functionality in here
+            /* // write element functionality in here
             // Create a shadow root
             this.shadow = this.attachShadow({
                 mode: 'open'
-            }); // sets and returns 'this.shadowRoot'
+            }); // sets and returns 'this.shadowRoot' */
 
+            let ihtml = this.innerHTML;
+            this.innerHTML = '';
             this.base = document.createElement('div');
-            this.base.classList.add("stepBase");
-            this.shadow.appendChild(this.base);
-            this.base.innerHTML = this.innerHTML;
+            this.base.style.opacity = "0";
+            this.base.style.transition = "opacity 2s";
+            //this.base.classList.add("stepBase");
+            //this.shadow.appendChild(this.base);
+            this.appendChild(this.base);
+            this.base.innerHTML = ihtml;
             //this.shadow.innerHTML = this.innerHTML;
-            this.innerHTML = "";
+            //this.innerHTML = "";
 
             // Create some CSS to apply to the shadow dom
-            const style = document.createElement('style');
+            /* const style = document.createElement('style');
             style.textContent = `
             .stepBase {
                 opacity: 0;
@@ -518,7 +523,7 @@ input::placeholder {
             }
             `;
 
-            this.shadow.appendChild(style);
+            this.shadow.appendChild(style); */
 
             //this.style.visibility = "hidden";
             /* var back = this.innerHTML;
@@ -533,9 +538,9 @@ input::placeholder {
                  this.components.push(e.target);
              }); */
 
-            this.shadow.addEventListener("solve", (e) => {
+            this.base.addEventListener("solve", (e) => {
                 e.stopPropagation();
-                let remaining = this.shadow.querySelectorAll("[solved='false']");
+                let remaining = this.base.querySelectorAll("[solved='false']");
                 if (remaining.length == 0) {
                     this.complete = true;
                     nextStep();
@@ -568,7 +573,9 @@ input::placeholder {
         reveal() {
             //this.style.visibility = "visible";
             //this.classList.add("show");
-            this.base.classList.add("show");
+            //this.base.classList.add("show");
+            this.base.style.opacity = "1";
+            //SVG(this.base).animate(2000).css('opacity','1');
             this.visible = true;
         }
     }
@@ -743,3 +750,4 @@ input::placeholder {
     };
     customElements.define('w-m', wselect);
 })();
+}
