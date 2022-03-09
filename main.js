@@ -5,7 +5,7 @@ function iterativeSVG(file, element, callback) {
         fetch(file).then(function (response) {
             if (response.ok) {
               response.text().then(function (mytext) {
-                console.log(mytext);
+                //console.log(mytext);
                 draw.svg(mytext, true);
   
                 if (callback)
