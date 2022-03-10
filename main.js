@@ -734,6 +734,7 @@ input::placeholder {
     openLink.textContent = "mostrar tudo";
     openLink.style.color = "blue";
     openLink.onclick = showAllSteps;
+    document.body.appendChild(document.createElement('br'););
     document.body.appendChild(openLink);
 })();
 }
