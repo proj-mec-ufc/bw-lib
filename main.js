@@ -2,16 +2,19 @@ function iterativeSVG(file, element, callback) {
     if (SVG) {
       SVG.on(document, 'DOMContentLoaded', function () {
         var draw = SVG(element)
-        //let id =draw.id();
+        let id =draw.id();
         fetch(file).then(function (response) {
             if (response.ok) {
               response.text().then(function (mytext) {
-                //console.log(mytext);
-                draw.svg(mytext, true);
-                //draw.id(id);
+                let add = draw.group();
+                add.svg(mytext);
+                let root = add.first();
+                root.id(id);
+                draw.after(root);
+                draw.remove();
   
                 if (callback)
-                  callback();
+                  callback(root);
   
               });
             } else {
