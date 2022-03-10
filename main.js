@@ -2,11 +2,13 @@ function iterativeSVG(file, element, callback) {
     if (SVG) {
       SVG.on(document, 'DOMContentLoaded', function () {
         var draw = SVG(element)
+        //let id =draw.id();
         fetch(file).then(function (response) {
             if (response.ok) {
               response.text().then(function (mytext) {
                 //console.log(mytext);
                 draw.svg(mytext, true);
+                //draw.id(id);
   
                 if (callback)
                   callback();
@@ -734,7 +736,7 @@ input::placeholder {
     openLink.textContent = "mostrar tudo";
     openLink.style.color = "blue";
     openLink.onclick = showAllSteps;
-    document.body.appendChild(document.createElement('br'););
+    document.body.appendChild(document.createElement('br'));
     document.body.appendChild(openLink);
 })();
 }
