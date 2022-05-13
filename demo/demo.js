@@ -1,3 +1,33 @@
+function iterativeSVG(file, element, callback) {
+    if (SVG) {
+      SVG.on(document, 'DOMContentLoaded', function () {
+        var draw = SVG(element)
+        let id =draw.id();
+        fetch(file).then(function (response) {
+            if (response.ok) {
+              response.text().then(function (mytext) {
+                let add = draw.group();
+                add.svg(mytext);
+                let root = add.first();
+                root.id(id);
+                draw.after(root);
+                draw.remove();
+  
+                if (callback)
+                  callback(root);
+  
+              });
+            } else {
+              console.log('Network response was not ok.');
+            }
+          })
+          .catch(function (error) {
+            console.log('There has been a problem with your fetch operation: ' + error.message);
+          });
+      })
+    }
+  }
+if(SVG){
 (function () {
     var wiStyle = `
 :host{
@@ -459,6 +489,7 @@ input::placeholder {
 
     customElements.define('w-i', winput);
 
+    // W-S -----------------------------------------------------
     class wstep extends HTMLElement {
         constructor() {
             // Always call super first in constructor
@@ -466,17 +497,18 @@ input::placeholder {
 
             this.visible = false;
             this.complete = false;
-            this.components = []
+            //this.components = []
 
-            //this.style.visibility = "hidden";
-            var back = this.innerHTML;
-            this.innerHTML = "";
+
+            let ihtml = this.innerHTML;
+            this.innerHTML = '';
             this.base = document.createElement('div');
-            this.base.classList.add("stepBase");
+            this.base.style.opacity = "0";
+            //this.base.style.display = "none";
+            this.base.style.transition = "opacity 2s";
+
             this.appendChild(this.base);
-            this.base.innerHTML = back;
-            //this.base.style.opacity = "0.2";
-            //this.style.opacity = "0";
+            this.base.innerHTML = ihtml;
 
             /*  this.addEventListener("ready", (e) => {
                  e.stopPropagation();
@@ -484,9 +516,9 @@ input::placeholder {
                  this.components.push(e.target);
              }); */
 
-            this.addEventListener("solve", (e) => {
+            this.base.addEventListener("solve", (e) => {
                 e.stopPropagation();
-                let remaining = this.querySelectorAll("[solved='false']");
+                let remaining = this.base.querySelectorAll("[solved='false']");
                 if (remaining.length == 0) {
                     this.complete = true;
                     nextStep();
@@ -519,34 +551,16 @@ input::placeholder {
         reveal() {
             //this.style.visibility = "visible";
             //this.classList.add("show");
-            this.base.classList.add("show");
+            //this.base.classList.add("show");
+            this.base.style.display = "block";
+            this.base.style.opacity = "1";
+            //SVG(this.base).animate(2000).css('opacity','1');
             this.visible = true;
         }
     }
     customElements.define('w-s', wstep);
 
-
-    var steps;
-    var currentStep;
-
-    function nextStep() {
-        currentStep++;
-        if (currentStep < steps.length) {
-            steps[currentStep].reveal();
-        }
-    }
-
-    window.addEventListener("load", () => {
-        console.log('load event');
-
-    })
-    window.addEventListener('DOMContentLoaded', (event) => {
-        console.log('DOM fully loaded and parsed');
-        steps = document.querySelectorAll("w-s");
-        currentStep = -1;
-        nextStep();
-    });
-
+// W-M -----------------------------------------------------
     class wselect extends HTMLElement {
         constructor() {
             super(...arguments);
@@ -692,5 +706,411 @@ input::placeholder {
             return array;
         }
     };
-    customElements.define('w-m', wselect);
+    customElements.define('w-m', wselect);    
+
+    var steps;
+    var currentStep;
+
+    function nextStep() {
+        currentStep++;
+        if (currentStep < steps.length) {
+            steps[currentStep].reveal();
+        }
+    }
+
+    function showAllSteps(){
+        steps.forEach((step)=>{
+            step.reveal();
+        });
+    }
+
+    window.addEventListener("load", () => {
+        console.log('load event');
+
+    })
+    window.addEventListener('DOMContentLoaded', (event) => {
+        console.log('DOM fully loaded and parsed');
+        steps = document.querySelectorAll("w-s");
+        currentStep = -1;
+        nextStep();
+    });
+
+    let openLink = document.createElement('a');
+    openLink.textContent = "mostrar tudo";
+    openLink.style.color = "blue";
+    openLink.onclick = showAllSteps;
+    document.body.appendChild(document.createElement('br'));
+    document.body.appendChild(openLink);
 })();
+}
+
+/* OLD --------------------------------------------------
+// $$ -> querySelectorAll
+// $ -> querySelector
+// $N -> cria/habilita tag no ambiente (SVG)
+// setAttr -> setAttribute // attr -> getAttribute
+// e.bounds  getBoundingClientRect
+Browser.width = window.innerWidth;
+Browser.height = window.innerHeight;
+d = `M${p.map((x) => `${x.x},${x.y}`).join("L")}`
+*/
+
+
+  // ../../frontend/components/target/target.ts
+  function connect(from, to, fromShift, toShift) {
+    const fromPoint = new Point2(from.left - 15, from.top + fromShift - 15);
+    const fromRect = new Rectangle2(fromPoint, from.width + 30, from.height + 30);
+    const toPoint = new Point2(to.left - 15, to.top + toShift - 15);
+    const toRect = new Rectangle2(toPoint, to.width + 30, to.height + 30);
+    const path = new Segment2(fromRect.center, toRect.center);
+    return [intersections2(path, fromRect)[0], intersections2(path, toRect)[0]];
+  }
+  function distance(a2, b2) {
+    return Math.abs(a2[0] - b2[0]) + Math.abs(a2[1] - b2[1]);
+  }
+
+  {/* <svg>
+        <defs>
+            <mask id="masking">
+                <rect width="100%" height="100%" fill="white"></rect>
+            </mask>
+        </defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z"></path>
+        </marker>
+        <rect x="0" y="0" width="100%" height="100%" mask="url(#masking)" opacity="0.8"></rect>
+        <path class="target-arrow" stroke-width="5" marker-end="url(#arrow)" opacity="0.4" stroke-linecap="round"></path>
+    </svg> */}
+
+    /* .target-body {
+        display:none;
+        height:100%;
+        left:0;
+        opacity:0;
+        pointer-events:none;
+        position:fixed;
+        top:0;
+        transform:translateZ(0);
+        transition:opacity .3s;
+        width:100%;
+        will-change:opacity;
+        z-index:900
+       }
+       .target-body>rect {
+        fill:#fff
+       }
+       .target-body #arrow path {
+        fill:#000
+       }
+       .target-body .target-arrow {
+        stroke:#000
+       }
+
+    <svg class="target-body" style="display: block; opacity: 0.5;">
+        <defs><mask id="masking">
+            <rect width="100%" height="100%" fill="white"></rect>
+            <rect x="276.265625" y="202.796875" width="85.734375" height="35" rx="18" ry="18"></rect>
+            <rect x="158.239990234375" y="497.72747802734375" width="68.260009765625" height="68.260009765625" rx="4" ry="4"></rect>
+        </mask></defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z"></path>
+        </marker>
+        <rect x="0" y="0" width="100%" height="100%" mask="url(#masking)" opacity="0.8"></rect>
+        <path class="target-arrow" stroke-width="5" marker-end="url(#arrow)" opacity="0.4" stroke-linecap="round" d="M307.53718646870163,248.796875L208.2905882127655,492.72747802734375"></path>
+    </svg> */
+
+
+function assingEvents(element,events,callback){
+    events = events.split(' ');
+    events.forEach(e=>{
+        element.addEventListener(e,callback);
+    })
+}
+
+function buildTarget(ele){
+    //var $fixed = $$("header, x-tutor, .sidebar");
+    //var $targets = $N("svg", {class: "target-body", html: target_default}, $body);
+
+    let draw = SVG().addTo('body');
+    draw.css({display:'none',
+        height:'100%',
+        left:0,
+        opacity:0,
+        'pointer-events':'none',
+        position:'fixed',
+        top:0,
+        transform:'translateZ(0)',
+        transition:'opacity .3s',
+        width:'100%',
+        'will-change':'opacity',
+        'z-index':900})
+    let mask = draw.defs().mask().id('masking');
+    mask.rect('100%', '100%').fill('white');
+    draw.rect('100%', '100%').attr({x:0,y:0,mask:'url(#masking)',opacity:'0.8'}).css('fill','#fff');
+    var lines = draw.group();
+
+    var active = false;
+    
+    //draw.css({opacity:1,display:'block'})
+
+    const query = ele.getAttribute('target');
+      
+
+    const enter = () => {
+        if(!active){
+            active = true;
+            const targets = document.querySelectorAll(query);
+            if (!targets.length)
+                return;  
+
+            const sourceBounds = ele.getBoundingClientRect();
+            const bounds = Array.from(targets).map((x) => x.getBoundingClientRect()).filter((x) => x.width || x.height);
+
+            let margin = 10;
+
+            mask.each(function(i, children) {
+                this.remove()
+            });
+            lines.each(function(i, children) {
+                this.remove()
+            });
+
+            rectBounds = [sourceBounds, ...bounds].map((bo, i) => {
+                
+                return mask.rect(bo.width+margin,bo.height+margin).move(bo.left-margin/2,bo.top-margin/2).radius(4);
+            });
+
+            rectBounds.forEach((r,i)=>{
+                if(i){
+                    lines.line(sourceBounds.left+sourceBounds.width/2,sourceBounds.top+sourceBounds.height/2,r.x()+r.width()/2,r.y()+r.height()/2)
+                    .stroke({ width: 10 }).css({fill:'#000',stroke:'#000'}).attr('mask','url(#masking)');
+                }
+                r.clone().attr({fill:'none',stroke:'black'}).addTo(lines);
+            })
+
+            draw.css({opacity:1,display:'block'})
+        }
+    }
+
+    assingEvents(ele,'mouseenter touchstart focus',enter);
+
+
+    /* 
+    targets = document.createElement('svg');
+    targets.innerHTML = '<defs><mask id="masking"><rect width="100%" height="100%" fill="white"></rect></mask></defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker><rect x="0" y="0" width="100%" height="100%" mask="url(#masking)" opacity="0.8"></rect><path class="target-arrow" stroke-width="5" marker-end="url(#arrow)" opacity="0.4" stroke-linecap="round"></path>';
+    var mask = targets.querySelector("mask");
+    var arrow = targets.querySelector(".target-arrow");
+    var active = false;
+    //var sourceFixed = null;
+    var $bounds = [];
+
+    ele.setAttribute("tabindex", 0);
+    const query = ele.getAttribute('target');
+
+    const enter2 = () => {
+        active = true;
+        const $targets2 = document.querySelectorAll(query);
+        if (!$targets2.length)
+          return;
+        const targetFixed = $targets2[0].hasParent(...$fixed);
+        //if (sourceFixed === null)
+       //   sourceFixed = this.hasParent(...$fixed);
+        const sourceBounds = ele.getBoundingClientRect();//this.bounds;
+        const bounds = $targets2.map((x) => x.getBoundingClientRect()).filter((x) => x.width || x.height);
+        scroll = 0;
+       // if (!targetFixed) {
+          const top = Math.min(...bounds.map((x) => x.top));
+          const bottom = Math.max(...bounds.map((x) => x.top + x.height));
+          const scrollUp = Browser.height - 12 - bottom;
+          const scrollDown = (false ? 12 : 56) - top;
+          scroll = scrollUp < 0 ? scrollUp : scrollDown > 0 ? scrollDown : 0;
+        //}
+        for (const $b of $bounds)
+          $b.remove();
+        $bounds = [sourceBounds, ...bounds].map((b2, i) => {
+          const margin = !i || noMargins ? 4 : 10;
+          return $N("rect", {
+            x: b2.left - margin,
+            y: b2.top - margin + (i || !sourceFixed ? scroll : 0),
+            width: b2.width + 2 * margin,
+            height: b2.height + 2 * margin,
+            rx: i ? 4 : 18,
+            ry: i ? 4 : 18
+          }, $mask);
+        });
+        $arrow.points = connect(sourceBounds, bounds[0], sourceFixed ? 0 : scroll, targetFixed ? 0 : scroll);
+      };
+      const show = () => {
+        if (scroll)
+          $body.scrollBy(-scroll, 300);
+        $targets.css("display", "block");
+        Browser.redraw();
+        delay(function() {
+          $targets.css("opacity", 1);
+        }, scroll ? 300 : 0);
+      };
+      const exit2 = (event) => {
+        if (!active)
+          return;
+        if (event) {
+          const moveEvent = isOneOf(event.type, "mousemove", "pointermove");
+          if (moveEvent && distance(start, [event.clientX, event.clientY]) < 40) {
+            return;
+          }
+        }
+        clearTimeout(showTimeout);
+        active = false;
+        $targets.css("opacity", 0);
+        setTimeout(() => {
+          if (!active)
+            $targets.css("display", "none");
+        }, 300);
+        $body.off("mousewheel mousemove touchend touchmove", exit2);
+        this.off("mouseleave blur", exit2);
+      };
+      const bindExit = () => {
+        if (scroll && !sourceFixed) {
+          $body.on("mousemove", exit2);
+        } else {
+          this.on("mouseleave", exit2);
+        }
+        $body.on("mousewheel touchend touchmove", exit2);
+        this.on("blur", exit2);
+      };
+
+    const func1 = ()=>{
+        start = [e.clientX, e.clientY];
+        enter2();
+        showTimeout = window.setTimeout(show, scroll ? 50 : 30);
+        bindExit();
+    }
+    ele.addEventListener("mouseenter", () => {
+        func1();
+    });
+    ele.addEventListener("touchstart", () => {
+        func1();
+    });
+    ele.addEventListener("focus", () => {
+        func1();
+    });
+    ele.addEventListener("click", (e) => {
+        if (active) {
+          e.handled = true;
+          exit2();
+          setTimeout(() => document.querySelector(query).trigger("click mousedown"));
+        } else {
+          active = true;
+          scroll = 0;
+          show();
+          bindExit();
+        }
+      });
+}
+var $fixed = $$("header, x-tutor, .sidebar");
+  var $targets = $N("svg", {class: "target-body", html: target_default}, $body);
+  var $mask = $targets.$("mask");
+  var $arrow = $targets.$(".target-arrow");
+  var active = false;
+  var $bounds = [];
+  var Target = class extends CustomElementView {
+    ready() {
+      this.setAttr("tabindex", 0);
+      const query = this.attr("to").replace(/_/g, " ");
+      const noMargins = this.hasClass("no-margins");
+      let sourceFixed = void 0;
+      let start;
+      let scroll;
+      let showTimeout;
+      const enter2 = () => {
+        active = true;
+        const $targets2 = $$(query);
+        if (!$targets2.length)
+          return;
+        const targetFixed = $targets2[0].hasParent(...$fixed);
+        if (sourceFixed === void 0)
+          sourceFixed = this.hasParent(...$fixed);
+        const sourceBounds = this.bounds;
+        const bounds = $targets2.map((x) => x.bounds).filter((x) => x.width || x.height);
+        scroll = 0;
+        if (!targetFixed) {
+          const top = Math.min(...bounds.map((x) => x.top));
+          const bottom = Math.max(...bounds.map((x) => x.top + x.height));
+          const scrollUp = Browser.height - 12 - bottom;
+          const scrollDown = (false ? 12 : 56) - top;
+          scroll = scrollUp < 0 ? scrollUp : scrollDown > 0 ? scrollDown : 0;
+        }
+        for (const $b of $bounds)
+          $b.remove();
+        $bounds = [sourceBounds, ...bounds].map((b2, i) => {
+          const margin = !i || noMargins ? 4 : 10;
+          return $N("rect", {
+            x: b2.left - margin,
+            y: b2.top - margin + (i || !sourceFixed ? scroll : 0),
+            width: b2.width + 2 * margin,
+            height: b2.height + 2 * margin,
+            rx: i ? 4 : 18,
+            ry: i ? 4 : 18
+          }, $mask);
+        });
+        $arrow.points = connect(sourceBounds, bounds[0], sourceFixed ? 0 : scroll, targetFixed ? 0 : scroll);
+      };
+      const show = () => {
+        if (scroll)
+          $body.scrollBy(-scroll, 300);
+        $targets.css("display", "block");
+        Browser.redraw();
+        delay(function() {
+          $targets.css("opacity", 1);
+        }, scroll ? 300 : 0);
+      };
+      const exit2 = (event) => {
+        if (!active)
+          return;
+        if (event) {
+          const moveEvent = isOneOf(event.type, "mousemove", "pointermove");
+          if (moveEvent && distance(start, [event.clientX, event.clientY]) < 40) {
+            return;
+          }
+        }
+        clearTimeout(showTimeout);
+        active = false;
+        $targets.css("opacity", 0);
+        setTimeout(() => {
+          if (!active)
+            $targets.css("display", "none");
+        }, 300);
+        $body.off("mousewheel mousemove touchend touchmove", exit2);
+        this.off("mouseleave blur", exit2);
+      };
+      const bindExit = () => {
+        if (scroll && !sourceFixed) {
+          $body.on("mousemove", exit2);
+        } else {
+          this.on("mouseleave", exit2);
+        }
+        $body.on("mousewheel touchend touchmove", exit2);
+        this.on("blur", exit2);
+      };
+      this.on("mouseenter touchstart focus", (e) => {
+        start = [e.clientX, e.clientY];
+        enter2();
+        showTimeout = window.setTimeout(show, scroll ? 50 : 30);
+        bindExit();
+      });
+      this.on("click", (e) => {
+        if (active) {
+          e.handled = true;
+          exit2();
+          setTimeout(() => $(query).trigger("click mousedown"));
+        } else {
+          active = true;
+          scroll = 0;
+          show();
+          bindExit();
+        }
+      });
+    } */
+  };
+
+  let busc = document.querySelector('[wb="target"]')
+  buildTarget(busc);
